@@ -1,0 +1,84 @@
+#include <SFML/Graphics.hpp>
+#include <vector>
+#include <cstdlib>
+#include <ctime>
+
+int WinMain()
+{
+	std::srand(std::time(nullptr));
+	sf::RenderWindow gameWindow;
+	sf::RenderWindow picWindow;
+	gameWindow.create(sf::VideoMode(600, 600), "");
+	picWindow.create(sf::VideoMode(600, 600), "");
+	gameWindow.setFramerateLimit(60);
+	sf::Event event;
+
+	sf::Image img;
+	img.loadFromFile("test.png");
+	sf::Texture fullimgtext;
+	fullimgtext.loadFromImage(img);
+	sf::Sprite fullsprite;
+	fullsprite.setTexture(fullimgtext);
+	int factor = img.getSize().x / 4;
+	fullsprite.setScale((600.f / 4) / factor, (600.f / 4) / factor);
+
+	std::vector <sf::Sprite> sprite_tiles(16);
+	std::vector <sf::Texture> text_tiles(16);
+
+	sf::Image small_img;
+
+	small_img.create(factor, factor, sf::Color::Green);
+
+	for (int m = 0; m < 4; m++) {
+		for (int n = 0; n < 4; n++) {
+			for (int i = 0; i < factor; ++i) {
+				for (int j = 0; j < factor; ++j) {
+					small_img.setPixel(i, j, img.getPixel(i + n * factor, j + m * factor));
+				}
+			}
+			text_tiles[n * 4 + m].loadFromImage(small_img);
+			sprite_tiles[n * 4 + m].setTexture(text_tiles[n * 4 + m]);
+			sprite_tiles[n * 4 + m].setScale((600.f / 4) / factor, (600.f / 4) / factor);
+			sf::Vector2f pos;
+			pos.x = n * 150.f;
+			pos.y = m * 150.f;
+			sprite_tiles[n * 4 + m].setPosition(pos);
+			sprite_tiles.push_back(sprite_tiles[n * 4 + m]);
+		}
+	}
+
+	sf::Image img_void;
+	img_void.create(600, 600, sf::Color::Green);
+	sf::Texture tex_void;
+	tex_void.loadFromImage(img_void);
+	int void_index = 15;
+	text_tiles[15].swap(tex_void);
+
+	sf::Vector2i winpos;
+	winpos.x = 355.f;
+	winpos.y = 240.f;
+	gameWindow.setPosition(winpos);
+	winpos.x = 955.f;
+	picWindow.setPosition(winpos);
+
+	while (gameWindow.isOpen() || picWindow.isOpen()) {
+		while (gameWindow.pollEvent(event) || picWindow.pollEvent(event)) {
+			if (event.type == sf::Event::Closed) {
+				gameWindow.close();
+				picWindow.close();
+			}
+		}
+
+		gameWindow.clear();
+		picWindow.clear();
+
+		for (int i = 0; i < 16; ++i)
+			gameWindow.draw(sprite_tiles[i]);
+		picWindow.draw(fullsprite);
+
+		gameWindow.display();
+		picWindow.display();
+	}
+
+	return 0;
+}
